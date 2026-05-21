@@ -21,12 +21,12 @@ def send_password_reset_email(to_email: str, token: str) -> None:
         f"If you did not request this, please ignore this email."
     )
     msg["Subject"] = "Password Reset - VinR"
-    msg["From"] = settings.SMTP_FROM_EMAIL
+    msg["From"] = settings.EMAILS_FROM_EMAIL
     msg["To"] = to_email
 
     try:
         with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-            if settings.SMTP_TLS:
+            if settings.SMTP_PORT == 587:
                 server.starttls()
             if settings.SMTP_USER and settings.SMTP_PASSWORD:
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)

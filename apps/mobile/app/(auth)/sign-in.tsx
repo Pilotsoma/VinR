@@ -350,7 +350,7 @@ export default function SignInScreen() {
                         />
 
                         {/* Forgot */}
-                        <Pressable style={s.forgotRow}>
+                        <Pressable style={s.forgotRow} onPress={() => router.push('/(auth)/forgot-password')}>
                             <Text style={s.forgotText}>Forgot password?</Text>
                         </Pressable>
 
