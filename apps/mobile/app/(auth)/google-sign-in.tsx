@@ -169,16 +169,6 @@ export default function GoogleSignInScreen() {
     const btnScale = useSharedValue(1);
     const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
 
-    // Handle OAuth response
-    useEffect(() => {
-        if (response?.type === 'success' && response.authentication?.accessToken) {
-            handleGoogleSuccess(response.authentication.accessToken);
-        } else if (response?.type === 'error') {
-            haptics.error();
-            Alert.alert('Google Sign In Error', response.error?.message || 'Something went wrong');
-        }
-    }, [response]);
-
     const handleGoogleSuccess = async (accessToken: string) => {
         setLoading(true);
         try {
@@ -195,6 +185,16 @@ export default function GoogleSignInScreen() {
             setLoading(false);
         }
     };
+
+    // Handle OAuth response
+    useEffect(() => {
+        if (response?.type === 'success' && response.authentication?.accessToken) {
+            handleGoogleSuccess(response.authentication.accessToken);
+        } else if (response?.type === 'error') {
+            haptics.error();
+            Alert.alert('Google Sign In Error', response.error?.message || 'Something went wrong');
+        }
+    }, [response]);
 
     const handlePress = async () => {
         if (!request) {
@@ -412,7 +412,6 @@ const s = StyleSheet.create({
     googleIconG: {
         fontWeight: '800',
         color: '#4285F4',
-        lineHeight: undefined,
     },
 
     divider: {
