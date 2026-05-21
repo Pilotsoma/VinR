@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
     View, Text, TextInput, Pressable, StyleSheet,
     KeyboardAvoidingView, Platform, ActivityIndicator,
-    Alert, Dimensions,
+    Alert, Dimensions, // Alert kept for Apple OAuth fallback
 } from 'react-native';
 import { AuthService } from '../../services/auth';
 import { router } from 'expo-router';
@@ -199,6 +199,7 @@ export default function SignInScreen() {
     const [email,    setEmail]    = useState('');
     const [password, setPassword] = useState('');
     const [loading,  setLoading]  = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // Entry animations
     const backOp   = useSharedValue(0);
@@ -233,6 +234,7 @@ export default function SignInScreen() {
 
     const handleSignIn = async () => {
         if (!email || !password) return;
+        setErrorMsg(null);
         haptics.medium();
         btnScale.value = withSequence(
             withSpring(0.96, { stiffness: 400 }),
@@ -244,7 +246,15 @@ export default function SignInScreen() {
             haptics.success();
         } catch (err: any) {
             haptics.error();
-            Alert.alert('Sign In Failed', err.response?.data?.error || err.message || 'Please try again');
+            const status = err.response?.status;
+            const detail = err.response?.data?.detail;
+            if (status === 401) {
+                setErrorMsg('Incorrect email or password. Please try again.');
+            } else if (detail) {
+                setErrorMsg(detail);
+            } else {
+                setErrorMsg('Something went wrong. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -323,7 +333,7 @@ export default function SignInScreen() {
                             label="Email"
                             placeholder="you@example.com"
                             value={email}
-                            onChangeText={setEmail}
+                            onChangeText={(t) => { setEmail(t); setErrorMsg(null); }}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             autoComplete="email"
@@ -333,7 +343,7 @@ export default function SignInScreen() {
                             label="Password"
                             placeholder="••••••••"
                             value={password}
-                            onChangeText={setPassword}
+                            onChangeText={(t) => { setPassword(t); setErrorMsg(null); }}
                             autoComplete="password"
                             secureTextEntry
                             delay={500}
@@ -343,6 +353,14 @@ export default function SignInScreen() {
                         <Pressable style={s.forgotRow}>
                             <Text style={s.forgotText}>Forgot password?</Text>
                         </Pressable>
+
+                        {/* Inline error banner */}
+                        {errorMsg && (
+                            <View style={s.errorBox}>
+                                <Text style={s.errorIcon}>⚠</Text>
+                                <Text style={s.errorText}>{errorMsg}</Text>
+                            </View>
+                        )}
 
                         {/* Sign In button */}
                         <Animated.View style={btnStyle}>
@@ -486,6 +504,30 @@ const s = StyleSheet.create({
         paddingVertical: 14,
         fontFamily: 'DMSans_400Regular',
         fontSize: 16, color: TEXT_HI,
+    },
+
+    errorBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(220,38,38,0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(220,38,38,0.35)',
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        marginBottom: 14,
+        gap: 8,
+    },
+    errorIcon: {
+        fontSize: 14,
+        color: '#F87171',
+    },
+    errorText: {
+        flex: 1,
+        fontFamily: 'DMSans_400Regular',
+        fontSize: 13,
+        color: '#F87171',
+        lineHeight: 18,
     },
 
     forgotRow: { alignSelf: 'flex-end', marginBottom: 18, marginTop: 2 },
