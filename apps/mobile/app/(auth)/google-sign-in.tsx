@@ -172,10 +172,13 @@ export default function GoogleSignInScreen() {
     // Handle OAuth response
     useEffect(() => {
         if (response?.type === 'success' && response.authentication?.accessToken) {
-            handleGoogleSuccess(response.authentication.accessToken);
+            void handleGoogleSuccess(response.authentication.accessToken);
         } else if (response?.type === 'error') {
             haptics.error();
-            Alert.alert('Google Sign In Error', response.error?.message || 'Something went wrong');
+            Alert.alert(
+                'Google Sign In Error',
+                response.error || response.errorCode || 'Something went wrong',
+            );
         }
     }, [response]);
 
