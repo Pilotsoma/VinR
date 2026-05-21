@@ -169,10 +169,18 @@ export default function GoogleSignInScreen() {
     const btnScale = useSharedValue(1);
     const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
 
-    // Handle OAuth response
+    // Handle OAuth response — web puts token in params, native in authentication
     useEffect(() => {
-        if (response?.type === 'success' && response.authentication?.accessToken) {
-            handleGoogleSuccess(response.authentication.accessToken);
+        if (response?.type === 'success') {
+            const token =
+                response.authentication?.accessToken ??
+                (response as any).params?.access_token;
+            if (token) {
+                handleGoogleSuccess(token);
+            } else {
+                haptics.error();
+                Alert.alert('Google Sign In Error', 'No access token returned. Please try again.');
+            }
         } else if (response?.type === 'error') {
             haptics.error();
             Alert.alert('Google Sign In Error', response.error?.message || 'Something went wrong');
