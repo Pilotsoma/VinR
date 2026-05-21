@@ -23,7 +23,7 @@ class UserLogin(BaseModel):
 
 
 class GoogleLogin(BaseModel):
-    id_token: str
+    access_token: str
 
 
 class ForgotPassword(BaseModel):

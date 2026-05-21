@@ -98,6 +98,24 @@ export const AuthService = {
         }
     },
 
+    async signInWithGoogle(accessToken: string) {
+        useAuthStore.getState().setLoading(true);
+        try {
+            const { data } = await api.post('/auth/google', { access_token: accessToken });
+            if (data.access_token) {
+                await setItemAsync('authToken', data.access_token);
+                await setItemAsync('refreshToken', data.refresh_token);
+                useAuthStore.getState().setToken(data.access_token);
+                return await this.getMe();
+            }
+        } catch (error: any) {
+            console.error('Google sign in failed:', error);
+            throw error;
+        } finally {
+            useAuthStore.getState().setLoading(false);
+        }
+    },
+
     async signOut() {
         useAuthStore.getState().setLoading(true);
         try {

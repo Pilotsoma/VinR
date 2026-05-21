@@ -250,9 +250,13 @@ export default function SignInScreen() {
         }
     };
 
-    const handleOAuth = async (strategy: 'oauth_google' | 'oauth_apple') => {
+    const handleOAuth = (strategy: 'oauth_google' | 'oauth_apple') => {
         haptics.medium();
-        Alert.alert('Coming soon', `${strategy === 'oauth_google' ? 'Google' : 'Apple'} sign-in coming next`);
+        if (strategy === 'oauth_google') {
+            router.push('/(auth)/google-sign-in');
+        } else {
+            Alert.alert('Coming soon', 'Apple sign-in coming next');
+        }
     };
 
     const canSubmit = !!email && !!password && !loading;

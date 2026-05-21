@@ -355,6 +355,22 @@ export default function SignUpScreen() {
                             </Pressable>
                         </Animated.View>
 
+                        {/* Divider */}
+                        <View style={s.divider}>
+                            <View style={s.dividerLine} />
+                            <Text style={s.dividerText}>or continue with</Text>
+                            <View style={s.dividerLine} />
+                        </View>
+
+                        {/* Google sign-up */}
+                        <Pressable
+                            style={s.googleBtn}
+                            onPress={() => { haptics.medium(); router.push('/(auth)/google-sign-in'); }}
+                        >
+                            <Text style={s.googleIcon}>G</Text>
+                            <Text style={s.googleBtnText}>Sign up with Google</Text>
+                        </Pressable>
+
                         {/* Privacy */}
                         <View style={s.privacyRow}>
                             <Lock size={11} color={TEXT_LO} strokeWidth={1.8} />
@@ -469,6 +485,45 @@ const s = StyleSheet.create({
         fontSize: 17, color: VOID, letterSpacing: 0.2,
     },
     btnDisabled: { opacity: 0.6 },
+
+    divider: {
+        flexDirection: 'row', alignItems: 'center',
+        marginVertical: 18,
+    },
+    dividerLine: {
+        flex: 1, height: 0.5,
+        backgroundColor: 'rgba(236,234,246,0.08)',
+    },
+    dividerText: {
+        fontFamily: 'DMSans_300Light',
+        fontSize: 12, color: TEXT_LO,
+        marginHorizontal: 12, letterSpacing: 0.3,
+    },
+
+    googleBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 14,
+        paddingVertical: 14,
+        gap: 10,
+        marginBottom: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 3,
+    },
+    googleIcon: {
+        fontSize: 17, fontWeight: '800',
+        color: '#4285F4',
+    },
+    googleBtnText: {
+        fontFamily: 'DMSans_600SemiBold',
+        fontSize: 15, color: '#1F1F1F',
+        letterSpacing: 0.1,
+    },
 
     privacyRow: {
         flexDirection: 'row', alignItems: 'center',

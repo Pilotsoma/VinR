@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
+import httpx
 
 from app.core.database import get_db
 from app.core.security import (
@@ -86,16 +87,44 @@ async def login(user_in: UserLogin, db: AsyncSession = Depends(get_db)):
 
 @router.post("/google", response_model=TokenResponse)
 async def google_login(user_in: GoogleLogin, db: AsyncSession = Depends(get_db)):
-    """Authenticate or register user via Google."""
-    # Note: In production, verify the id_token using google.oauth2.id_token
-    # For now, we simulate decoding or assume the client verified it.
-    # We would do:
-    # idinfo = id_token.verify_oauth2_token(user_in.id_token, Request(), CLIENT_ID)
-    # email = idinfo['email']
-    # google_id = idinfo['sub']
-    
-    # Placeholder implementation:
-    raise HTTPException(status_code=501, detail="Google verify logic needs library")
+    """Authenticate or register user via Google OAuth access token."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {user_in.access_token}"},
+            timeout=10.0,
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid Google access token")
+
+    info = resp.json()
+    email = info.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Google account has no email address")
+
+    if not info.get("email_verified", False):
+        raise HTTPException(status_code=400, detail="Google account email is not verified")
+
+    # Find existing user or create a new one
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        user_id = str(uuid.uuid4())
+        user = User(
+            id=user_id,
+            email=email,
+            name=info.get("name"),
+            avatar_url=info.get("picture"),
+        )
+        db.add(user)
+        await db.commit()
+
+    return TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
 
 
 @router.post("/forgot-password")
