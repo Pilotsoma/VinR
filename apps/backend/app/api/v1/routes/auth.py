@@ -1,5 +1,6 @@
 import uuid
 import secrets
+import asyncio
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -139,8 +140,8 @@ async def forgot_password(data: ForgotPassword, db: AsyncSession = Depends(get_d
         user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
         await db.commit()
         
-        # Send password reset email
-        send_password_reset_email(user.email, token)
+        # Send password reset email (run in thread so it never blocks the event loop)
+        await asyncio.to_thread(send_password_reset_email, user.email, token)
         
     return {"message": "If that email exists, a reset link has been sent"}
 
